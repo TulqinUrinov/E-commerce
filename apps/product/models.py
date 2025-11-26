@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING
 from django.db import models
 from django.db.models import SET_NULL
 
-from data.common.models import BaseModel
+from apps.common.models import BaseModel
 
 if TYPE_CHECKING:
-    from data.file.models import File
+    from apps.file.models import File
 
 
 class Product(BaseModel):

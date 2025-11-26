@@ -3,14 +3,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from data.file.models import File
+from apps.file.models import File
 
 
 class FileViewSetTests(TestCase):
 
     def setUp(self):
         self.client = APIClient()
-        # initial file object
         self.existing_file = File.objects.create(
             file=SimpleUploadedFile("test.txt", b"hello world")
         )

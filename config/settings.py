@@ -40,9 +40,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     # app
-    'data.product',
-    'data.common',
-    'data.file',
+    'apps.product',
+    'apps.common',
+    'apps.file',
 
 ]
 

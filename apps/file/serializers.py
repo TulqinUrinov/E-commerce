@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from data.file.models import File
+from apps.file.models import File
 
 
 class FileSerializer(ModelSerializer):

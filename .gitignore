@@ -182,3 +182,5 @@ celerybeat.pid*
 # Celery stuff
 **/celerybeat-schedule*
 **/celerybeat.pid*
+
+files/

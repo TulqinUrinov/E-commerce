@@ -37,6 +37,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("user/", include("apps.user.urls")),
     path("file/", include("apps.file.urls")),
     # Swagger
     re_path(

@@ -1,13 +1,32 @@
-from rest_framework import generics, status
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import PermissionDenied
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.user.serializers import LoginSerializer, UserSerializer
+from apps.common.core.services.token_services import create_tokens
+from apps.user.serializers import (
+    LoginSerializer,
+    UserSerializer,
+    RegisterSerializer, RefreshTokenSerializer,
+)
 
 User = get_user_model()
+
+
+class RegisterAPIView(generics.GenericAPIView):
+    serializer_class = RegisterSerializer
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.save()
+            tokens = create_tokens(user)
+
+            return Response({**tokens}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(generics.GenericAPIView):
@@ -18,15 +37,9 @@ class LoginView(generics.GenericAPIView):
 
         if serializer.is_valid(raise_exception=True):
             user = serializer.validated_data['user']
-            refresh = RefreshToken.for_user(user)
+            tokens = create_tokens(user)
 
-            refresh['user_id'] = str(user.id)
-            refresh['role'] = user.role
-
-            return Response({
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-            }, status=status.HTTP_200_OK)
+            return Response({**tokens}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -36,32 +49,26 @@ class JWTTokenRefresh(generics.GenericAPIView):
         Refresh JWT token using refresh token.
     """
 
+    serializer_class = RefreshTokenSerializer
+
     def post(self, request):
-        refresh_token = request.data.get('refresh')
+        serializer = self.serializer_class(data=request.data)
 
-        if not refresh_token:
-            return Response(
-                {'error': 'Refresh Token is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if serializer.is_valid():
+            refresh_token = serializer.validated_data['refresh']
 
-        refresh = RefreshToken(refresh_token)
-        access = refresh.access_token
-        return Response({
-            "access": str(access),
-            "refresh": str(refresh)
-        }, status=status.HTTP_200_OK)
+            refresh = RefreshToken(refresh_token)
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh)
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MeAPIView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
-
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        user = self.request.user
-
-        if user is None or user.is_anonymous:
-            raise PermissionDenied("Authentication credentials were not provided.")
-
-        return user
+        return self.request.user

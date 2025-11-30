@@ -23,7 +23,7 @@ class CustomJWTMiddleware:
                 user_id = payload["user_id"]
                 role = payload["role"]
 
-                request.user = User.objects.get(id=user_id).first()
+                request.user = User.objects.filter(id=user_id).first()
                 request.role = role
 
             except jwt.ExpiredSignatureError:
